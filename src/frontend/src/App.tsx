@@ -527,6 +527,7 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
   const [showResultModal, setShowResultModal] = useState(false);
   const [predKey, setPredKey] = useState(0);
+  const [periodInput, setPeriodInput] = useState("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingRound = useRef<number>(appState.currentRound);
   const pendingPredicted = useRef<number | null>(null);
@@ -642,6 +643,14 @@ export default function App() {
     const val = generatePrediction(minVal, maxVal, rounds);
     setPredicted(val);
     setPredKey((k) => k + 1);
+  };
+
+  const handleGateResult = () => {
+    const parsed = Number.parseInt(periodInput, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      handleRoundSave(parsed);
+    }
+    handleGenerate();
   };
 
   const handleReset = () => {
@@ -836,14 +845,12 @@ export default function App() {
               </p>
             </div>
 
-            <button
-              type="button"
-              data-ocid="prediction.primary_button"
-              onClick={handleGenerate}
-              className="relative w-full rounded-xl overflow-hidden group"
+            {/* Predicted number display */}
+            <div
+              className="relative w-full rounded-xl overflow-hidden"
               style={{ minHeight: 120 }}
             >
-              <div className="cta-gradient absolute inset-0 transition-opacity group-hover:opacity-90" />
+              <div className="cta-gradient absolute inset-0" />
               <div className="relative z-10 flex flex-col items-center justify-center h-full py-5 px-4 gap-2">
                 <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/80">
                   One-Tap Prediction
@@ -866,19 +873,57 @@ export default function App() {
                     </motion.span>
                   ) : (
                     <motion.span
-                      key="generate"
-                      className="text-2xl font-black text-white tracking-wider"
+                      key="idle"
+                      className="text-2xl font-black text-white/50 tracking-wider"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                     >
-                      GENERATE
+                      - - -
                     </motion.span>
                   )}
                 </AnimatePresence>
                 <span className="text-xs text-white/60">
                   {predicted !== null
-                    ? "Tap to regenerate"
-                    : "Tap to generate your prediction"}
+                    ? "Enter period & tap Gate Result"
+                    : "Enter period number below"}
+                </span>
+              </div>
+              <div className="absolute inset-0 rounded-xl ring-2 ring-white/10" />
+            </div>
+
+            {/* Period Number Input */}
+            <div className="w-full space-y-2">
+              <label
+                htmlFor="period-input"
+                className="text-xs text-muted-foreground block"
+              >
+                Period Number
+              </label>
+              <input
+                id="period-input"
+                data-ocid="prediction.input"
+                type="number"
+                min={1}
+                value={periodInput}
+                onChange={(e) => setPeriodInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleGateResult()}
+                placeholder="Enter period number…"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 font-mono"
+              />
+            </div>
+
+            {/* Gate Result Button */}
+            <button
+              type="button"
+              data-ocid="prediction.primary_button"
+              onClick={handleGateResult}
+              className="relative w-full rounded-xl overflow-hidden group py-3"
+            >
+              <div className="cta-gradient absolute inset-0 transition-opacity group-hover:opacity-90" />
+              <div className="relative z-10 flex items-center justify-center gap-2">
+                <Zap className="w-4 h-4 text-white" />
+                <span className="text-sm font-black text-white tracking-[0.12em] uppercase">
+                  Gate Result
                 </span>
               </div>
               <div className="absolute inset-0 rounded-xl ring-2 ring-white/10 group-hover:ring-white/25 transition-all" />
